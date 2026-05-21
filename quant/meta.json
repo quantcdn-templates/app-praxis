@@ -1,0 +1,11 @@
+[{
+  "title": "Praxis (Role-based agent runtime)",
+  "url": "/deploy/step-one?template=app-praxis",
+  "summary": "Praxis is a framework for role-based agents that grow within a defined role, with Quant Cloud inference built in.",
+  "content": "Deploys the Praxis dashboard backed by Quant Cloud inference. Each Quant application hosts one role: the operator visits /setup on first boot to seed the persona, then operates the role through /chat. Role files persist on an EFS-backed volume mounted at /role; every persona edit and chat-side tool call lands as a git commit on that volume so the audit trail survives redeploys.",
+  "image": "https://raw.githubusercontent.com/quantcdn-templates/app-praxis/main/quant/screenshot.png",
+  "categories": ["ai", "nodejs", "agents"],
+  "tags": ["praxis", "agents", "ai", "quant-inference"],
+  "template_type": "app",
+  "requires_db": false
+}]

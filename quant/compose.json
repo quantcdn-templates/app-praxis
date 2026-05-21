@@ -1,0 +1,16 @@
+{
+  "containers": [
+    {
+      "name": "dashboard",
+      "port": 4321,
+      "environment": {
+        "PRAXIS_INFERENCE_PROVIDER": "quantcloud",
+        "PRAXIS_ROLE_HOME": "/role"
+      },
+      "secrets": ["QUANT_API_TOKEN", "QUANT_ORGANISATION"],
+      "mountPoints": [
+        { "sourceVolume": "role", "containerPath": "/role" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+# Local-dev parity for app-praxis. Mounts a host directory as /role so
+# contributors can test the template against a writable host filesystem.
+#
+# Usage:
+#   mkdir role-home
+#   QUANT_API_TOKEN=... QUANT_ORGANISATION=... docker compose up
+
+services:
+  praxis:
+    build:
+      context: .
+      args:
+        NODE_VERSION: 22
+    image: app-praxis:dev
+    container_name: app-praxis
+    ports:
+      - "127.0.0.1:4321:4321"
+    volumes:
+      - "./role-home:/role"
+    environment:
+      PRAXIS_ROLE_HOME: /role
+      PRAXIS_INFERENCE_PROVIDER: quantcloud
+      QUANT_API_TOKEN: ${QUANT_API_TOKEN}
+      QUANT_ORGANISATION: ${QUANT_ORGANISATION}
+      QUANT_BASE_URL: ${QUANT_BASE_URL:-https://dashboard.quantcdn.io}
+      PRAXIS_OPERATOR_NAME: ${PRAXIS_OPERATOR_NAME:-Local Operator}
+      PRAXIS_OPERATOR_EMAIL: ${PRAXIS_OPERATOR_EMAIL:-operator@local}
+    restart: unless-stopped

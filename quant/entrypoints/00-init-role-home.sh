@@ -1,0 +1,47 @@
+#!/bin/sh
+# Praxis role-home preparation. Runs as the container user (node, UID 1000).
+#
+# Responsibilities (intentionally narrow):
+#  - Ensure /role exists and is writable by the runtime user.
+#  - Set a default git identity for OPERATOR-attributed commits when none is
+#    configured.
+#  - Surface a one-line summary to stdout so deploy logs make it obvious which
+#    state the volume booted in (fresh / existing).
+#
+# Non-responsibilities:
+#  - Cloning a remote source repo (this template's flow is wizard-driven).
+#  - Initialising the git repo itself — dashboard/src/lib/audit.ts auto-inits
+#    on first mutation. Pre-initialising here would land an empty baseline
+#    commit before the wizard, muddling the role's history.
+#  - Migrating data. EFS persistence is the operator's contract.
+
+set -eu
+
+ROLE_HOME="${PRAXIS_ROLE_HOME:-/role}"
+
+if [ ! -d "$ROLE_HOME" ]; then
+  echo "praxis: ERROR /role is not mounted — configure a persistent volume at $ROLE_HOME" >&2
+  exit 1
+fi
+
+if [ ! -w "$ROLE_HOME" ]; then
+  echo "praxis: ERROR $ROLE_HOME is not writable by uid $(id -u)" >&2
+  exit 1
+fi
+
+# Operator git identity. Configured per-repo (no global config) so the volume
+# carries it forward across redeploys. Only set when absent — never overwrite.
+if [ -d "$ROLE_HOME/.git" ]; then
+  cd "$ROLE_HOME"
+  if [ -z "$(git config user.name || true)" ]; then
+    git config user.name  "${PRAXIS_OPERATOR_NAME:-Quant Operator}"
+    git config user.email "${PRAXIS_OPERATOR_EMAIL:-operator@quant.cloud}"
+  fi
+fi
+
+# Boot summary — one line for the deploy log.
+if [ -f "$ROLE_HOME/persona.md" ]; then
+  echo "praxis: role-home seeded — $(ls "$ROLE_HOME" | wc -l | tr -d ' ') entries"
+else
+  echo "praxis: role-home empty — operator should visit /setup to seed"
+fi
