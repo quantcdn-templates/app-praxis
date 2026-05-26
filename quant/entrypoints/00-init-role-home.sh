@@ -32,17 +32,22 @@ fi
 # Operator git identity. dashboard/src/lib/audit.ts inits the repo and makes the
 # first commit on the initial wizard submit, so an identity must resolve *before*
 # .git exists — otherwise that commit fails with "Author identity unknown" and
-# /setup returns a 500. Set a global fallback first; once .git exists, also set a
-# per-repo identity so the volume carries it forward across redeploys. Only set
-# each scope when absent — never overwrite.
-if [ -z "$(git config --global user.name || true)" ]; then
-  git config --global user.name  "${PRAXIS_OPERATOR_NAME:-Quant Operator}"
-  git config --global user.email "${PRAXIS_OPERATOR_EMAIL:-operator@quant.cloud}"
+# /setup returns a 500.
+#
+# Scope matters: this hook runs as root, but the app base entrypoint drops
+# privileges (`exec gosu node`) so the server — and thus that first commit —
+# runs as `node`. A --global config would land in root's HOME, which node never
+# reads. Use --system (/etc/gitconfig, read by every user) so node picks it up.
+# Once .git exists, also pin a per-repo identity (read regardless of user) so the
+# volume carries it forward across redeploys. Only set each scope when absent.
+if [ -z "$(git config --system user.name || true)" ]; then
+  git config --system user.name  "${PRAXIS_OPERATOR_NAME:-Quant Operator}"
+  git config --system user.email "${PRAXIS_OPERATOR_EMAIL:-operator@quant.cloud}"
 fi
 
 if [ -d "$ROLE_HOME/.git" ]; then
   cd "$ROLE_HOME"
-  # --local so the merged-in global fallback above doesn't mask an unset repo.
+  # --local so the merged-in system fallback above doesn't mask an unset repo.
   if [ -z "$(git config --local user.name || true)" ]; then
     git config user.name  "${PRAXIS_OPERATOR_NAME:-Quant Operator}"
     git config user.email "${PRAXIS_OPERATOR_EMAIL:-operator@quant.cloud}"
