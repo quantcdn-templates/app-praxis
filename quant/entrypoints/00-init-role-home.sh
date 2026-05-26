@@ -29,11 +29,21 @@ if [ ! -w "$ROLE_HOME" ]; then
   exit 1
 fi
 
-# Operator git identity. Configured per-repo (no global config) so the volume
-# carries it forward across redeploys. Only set when absent — never overwrite.
+# Operator git identity. dashboard/src/lib/audit.ts inits the repo and makes the
+# first commit on the initial wizard submit, so an identity must resolve *before*
+# .git exists — otherwise that commit fails with "Author identity unknown" and
+# /setup returns a 500. Set a global fallback first; once .git exists, also set a
+# per-repo identity so the volume carries it forward across redeploys. Only set
+# each scope when absent — never overwrite.
+if [ -z "$(git config --global user.name || true)" ]; then
+  git config --global user.name  "${PRAXIS_OPERATOR_NAME:-Quant Operator}"
+  git config --global user.email "${PRAXIS_OPERATOR_EMAIL:-operator@quant.cloud}"
+fi
+
 if [ -d "$ROLE_HOME/.git" ]; then
   cd "$ROLE_HOME"
-  if [ -z "$(git config user.name || true)" ]; then
+  # --local so the merged-in global fallback above doesn't mask an unset repo.
+  if [ -z "$(git config --local user.name || true)" ]; then
     git config user.name  "${PRAXIS_OPERATOR_NAME:-Quant Operator}"
     git config user.email "${PRAXIS_OPERATOR_EMAIL:-operator@quant.cloud}"
   fi
