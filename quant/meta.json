@@ -7,5 +7,17 @@
   "categories": ["ai", "nodejs", "agents"],
   "tags": ["praxis", "agents", "ai", "quant-inference"],
   "template_type": "app",
-  "requires_db": false
+  "requires_db": false,
+  "secrets": [
+    {
+      "name": "QUANT_API_TOKEN",
+      "generate": "quant_token",
+      "scopes": ["ai:use"],
+      "expires_in": "never"
+    }
+  ],
+  "environment": [
+    { "name": "QUANT_ORGANISATION", "source": "organisation_machine_name" },
+    { "name": "QUANT_BASE_URL", "source": "quant_dashboard_url" }
+  ]
 }]
