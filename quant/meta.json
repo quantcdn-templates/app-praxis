@@ -1,4 +1,4 @@
-[{
+{
   "title": "Praxis (Role-based agent runtime)",
   "url": "/deploy/step-one?template=app-praxis",
   "summary": "Praxis is a framework for role-based agents that grow within a defined role, with Quant Cloud inference built in.",
@@ -8,4 +8,4 @@
   "tags": ["praxis", "agents", "ai", "quant-inference"],
   "template_type": "app",
   "requires_db": false
-}]
+}
