@@ -11,7 +11,10 @@ services:
       context: .
       args:
         NODE_VERSION: 22
-    image: app-praxis:dev
+    # Intentionally no `image:` tag. This service is build-only so Quant Cloud's
+    # compose import classifies it as an internal image and deploys the ECR build
+    # (<org>/<app>:praxis-<suffix>). Adding an `image:` here (e.g. app-praxis:dev)
+    # makes the import deploy that external tag instead -> unpullable -> ACCESS_DENIED.
     container_name: app-praxis
     ports:
       - "127.0.0.1:4321:4321"
