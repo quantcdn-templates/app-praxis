@@ -43,7 +43,10 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: ${{ vars.BUILD_PLATFORM || 'linux/amd64' }}
+          # Quant Cloud starter-kit environments run on ARM64 (Graviton) Fargate,
+          # so the image must be arm64 or the task fails to start. Override via the
+          # BUILD_PLATFORM repo variable only if the environment architecture changes.
+          platforms: ${{ vars.BUILD_PLATFORM || 'linux/arm64' }}
           push: true
           tags: |
             ${{ steps.init.outputs.stripped_endpoint }}/${{ secrets.QUANT_ORGANIZATION }}/${{ steps.init.outputs.quant_application }}:praxis-${{ steps.init.outputs.image_suffix_clean }}
