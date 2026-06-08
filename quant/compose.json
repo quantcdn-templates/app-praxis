@@ -5,12 +5,24 @@
       "port": 4321,
       "environment": {
         "PRAXIS_INFERENCE_PROVIDER": "quantcloud",
-        "PRAXIS_ROLE_HOME": "/role"
+        "PRAXIS_ROLE_HOME": "/role",
+        "PRAXIS_MCPS": "quant=http://mcp-quant:8080/mcp"
       },
       "secrets": ["QUANT_API_TOKEN", "QUANT_ORGANISATION"],
       "mountPoints": [
         { "sourceVolume": "role", "containerPath": "/role" }
       ]
+    },
+    {
+      "name": "mcp-quant",
+      "port": 8080,
+      "imageReference": { "type": "external", "identifier": "ghcr.io/quantcdn/mcp-quant:latest" },
+      "environment": {
+        "MCP_TRANSPORT": "http",
+        "PORT": "8080",
+        "QUANT_BASE_URL": "https://dashboard.quantcdn.io"
+      },
+      "secrets": ["QUANT_API_TOKEN", "QUANT_ORGANISATION"]
     }
   ]
 }

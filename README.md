@@ -7,6 +7,20 @@ A Quant Cloud template that deploys the [Praxis framework](https://github.com/st
 - **The Praxis dashboard** at the environment URL — `/setup` for the wizard, `/chat` for the role's conversational runtime, `/triage` for the operator's triage queue, `/role` for the role's interior, plus the rest of the supervisor surfaces.
 - **Quant Cloud inference** via `@praxis-framework/inference-quantcloud`. `claude-sonnet-4-6` by default; override via `PRAXIS_CHAT_MODEL`.
 - **EFS-backed persistence at `/role`.** The role's persona, memory, escalations, output, verbs, lib reference data, decision logs, and `.git` audit history all live on the volume. Redeploys preserve everything.
+- **The Quant MCP sidecar.** A bundled `mcp-quant` container exposes the Quant API to the role as MCP tools — see below.
+
+## Quant MCP — let the role manage your stack
+
+This template bundles **`mcp-quant`**, a standard MCP server that exposes the Quant API to the role as tools. It runs as an internal sidecar alongside the dashboard; the role reaches it via `PRAXIS_MCPS=quant=http://mcp-quant:8080/mcp`. Through it the role can administer the Quant stack (projects, domains, cache, crawls) **and** drive Quant's agentic platform — listing and chatting with your Quant **AI agents** and executing your **custom edge-function tools**, which surface automatically as the role's tools (build them on Quant; the role picks them up).
+
+- **Credentials:** the sidecar authenticates to Quant with the same `QUANT_API_TOKEN` / `QUANT_ORGANISATION` secrets the dashboard already uses (declared on both containers in `quant/compose.json`).
+- **Internal-only:** `mcp-quant` must not be publicly exposed. The dashboard→MCP hop is unauthenticated and trusts network isolation — the sidecar holds the API token; the dashboard never forwards it.
+- **Enable it on the role:** the capability ships in the framework catalog as `mcp:quant`. Select it during `/setup` (or add `mcp:quant` under `capabilities:` in the role's `lib/tools.yaml`), then allow it in `lib/autonomy.yaml`:
+  ```yaml
+  mcps:
+    quant: allow
+  ```
+  If `mcp:quant` is declared but the sidecar isn't reachable, `/health` surfaces an MCP drift warning.
 
 ## One-time pre-step (operator)
 
