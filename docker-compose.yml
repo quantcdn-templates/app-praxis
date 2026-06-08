@@ -28,4 +28,28 @@ services:
       QUANT_BASE_URL: ${QUANT_BASE_URL:-https://dashboard.quantcdn.io}
       PRAXIS_OPERATOR_NAME: ${PRAXIS_OPERATOR_NAME:-Local Operator}
       PRAXIS_OPERATOR_EMAIL: ${PRAXIS_OPERATOR_EMAIL:-operator@local}
+      # Point the role's MCP client at the Quant MCP sidecar (standard MCP over
+      # Streamable HTTP), reached by service name on the compose network.
+      PRAXIS_MCPS: "quant=http://mcp-quant:8080/mcp"
+    depends_on:
+      - mcp-quant
+    restart: unless-stopped
+
+  # Quant API exposed to the Praxis role as a standard MCP server (internal sidecar).
+  # Lets the role administer the Quant stack and drive Quant's agentic platform
+  # (agents, custom tools, orchestrations) through MCP.
+  mcp-quant:
+    # External published image — Quant Cloud pulls it as-is (unlike the build-only
+    # `praxis` service). If it isn't published yet, build it from the mcp-quant repo
+    # first: `docker build -t ghcr.io/quantcdn/mcp-quant:latest .`
+    image: ghcr.io/quantcdn/mcp-quant:latest
+    # No `ports:` mapping → internal-only. The dashboard reaches it by service name;
+    # it must NOT be publicly exposed. In this phase praxis→MCP is unauthenticated and
+    # trust is network isolation (the sidecar holds QUANT_API_TOKEN, not praxis).
+    environment:
+      MCP_TRANSPORT: http
+      PORT: "8080"
+      QUANT_API_TOKEN: ${QUANT_API_TOKEN}
+      QUANT_ORGANISATION: ${QUANT_ORGANISATION}
+      QUANT_BASE_URL: ${QUANT_BASE_URL:-https://dashboard.quantcdn.io}
     restart: unless-stopped
